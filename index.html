@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Web Audio Graphic EQ</title>
+  <style>
+    :root {
+      --fg:#111; --bg:#fafafa; --muted:#666; --card:#ffffff; --accent:#0a7;
+      --border:#e5e5e5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, sans-serif;
+      color: var(--fg); background: var(--bg);
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 12px; }
+    .row { display: grid; gap: 16px; margin-bottom: 16px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(40px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    label { font-size: .9rem; color: var(--muted); }
+    .gainout { font-size: .85rem; text-align: center; margin-top: 4px; }
+    .slider-vert {
+      writing-mode: bt-lr; -webkit-appearance: slider-vertical; appearance: slider-vertical;
+      height: 160px; width: 100%;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .controls > * { min-width: 160px; }
+    button, select, input[type="file"], input[type="checkbox"], input[type="range"] {
+      font: inherit;
+    }
+    .btn {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px;
+      background: #fff; cursor: pointer;
+    }
+    .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+    .small { font-size: .85rem; color: var(--muted); }
+    canvas { width: 100%; height: 160px; background: #111; border-radius: 12px; }
+    .source-row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    audio { width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>🎚️ Web Audio Graphic Equalizer</h1>
+
+  <div class="card row">
+    <div class="source-row">
+      <label>
+        ソース / Source:
+        <select id="sourceSelect">
+          <option value="file">ファイル / File</option>
+          <option value="mic">マイク / Microphone</option>
+          <option value="white">ホワイトノイズ / White Noise</option>
+          <option value="pink">ピンクノイズ / Pink Noise</option>
+        </select>
+      </label>
+
+      <label id="filePickerWrap">
+        <span>音声ファイルを選択 / Choose audio file</span><br>
+        <input id="fileInput" type="file" accept="audio/*">
+      </label>
+
+      <button id="playBtn" class="btn">▶︎ 再生 / Play</button>
+      <button id="pauseBtn" class="btn">⏸ 停止 / Pause</button>
+
+      <label>
+        マスター音量 / Master Volume
+        <input id="masterVol" type="range" min="0" max="1.5" step="0.01" value="1">
+      </label>
+
+      <label>
+        バイパス / Bypass
+        <input id="bypass" type="checkbox">
+      </label>
+
+      <!-- ノイズ専用音量 -->
+      <label>
+        ノイズ音量 / Noise Level
+        <input id="noiseLevel" type="range" min="0" max="1.5" step="0.01" value="0.5" disabled>
+      </label>
+    </div>
+
+    <audio id="player" controls crossorigin="anonymous"></audio>
+    <div class="small">
+      ⚠️ 初回はブラウザの自動再生制限により、ボタン操作で再生を開始してください。/ Due to autoplay policies, start playback with a user gesture.
+    </div>
+  </div>
+
+  <div class="card row">
+    <div class="controls">
+      <label>
+        プリセット / Preset
+        <select id="presetSelect">
+          <option value="flat">Flat</option>
+          <option value="bassBoost">Bass Boost</option>
+          <option value="trebleBoost">Treble Boost</option>
+          <option value="vocal">Vocal (Presence)</option>
+          <option value="loudness">Loudness (Smile)</option>
+        </select>
+      </label>
+
+      <button id="applyPreset" class="btn">適用 / Apply</button>
+      <button id="resetEq" class="btn">リセット / Reset</button>
+
+      <label>
+        Q（帯域幅・共振）/ Q (Bandwidth)
+        <input id="qGlobal" type="range" min="0.3" max="3" step="0.05" value="1.0">
+      </label>
+    </div>
+
+    <div id="sliders" class="grid"></div>
+    <div class="small">※ スライダーをダブルクリックで 0 dB にリセット / Double‑click a slider to reset to 0 dB.</div>
+  </div>
+
+  <div class="card row">
+    <label>スペクトラム / Spectrum (post‑EQ, log‑f axis)</label>
+    <canvas id="spectrum" width="900" height="160" aria-label="Spectrum Analyzer"></canvas>
+  </div>
+
+  <script src="eq.js"></script>
+</body>
+</html>
